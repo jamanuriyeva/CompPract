@@ -39,5 +39,9 @@ if __name__ == '__main__':
 ```
 
 **Replit скрины**
+
+
 ![борд реплиt](https://github.com/jamanuriyeva/CompPract/blob/aeaa6ceb5a6d687ebd5c59e3c99cdc97040c4ecb/LR6/pics/login.png)
+
+
 ![aaaaa](https://github.com/jamanuriyeva/CompPract/blob/aeaa6ceb5a6d687ebd5c59e3c99cdc97040c4ecb/LR6/pics/upload.png)
