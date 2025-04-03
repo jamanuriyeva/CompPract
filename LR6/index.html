@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Size Detector</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .upload-box {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload PNG Image</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <div class="upload-box">
+            <input type="file" id="image" name="image" accept=".png" required>
+            <p>Select a PNG image to get its dimensions</p>
+        </div>
+        <button type="submit">Get Dimensions</button>
+    </form>
+    
+    <div id="result">
+        <h3>Image Dimensions:</h3>
+        <p>Width: <span id="width"></span>px</p>
+        <p>Height: <span id="height"></span>px</p>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('image', document.getElementById('image').files[0]);
+            
+            try {
+                const response = await fetch('/size2json', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.width && data.height) {
+                    document.getElementById('width').textContent = data.width;
+                    document.getElementById('height').textContent = data.height;
+                    document.getElementById('result').style.display = 'block';
+                } else if (data.result) {
+                    alert(data.result);
+                }
+            } catch (error) {
+                alert('Error processing image');
+            }
+        });
+    </script>
+</body>
+</html>
