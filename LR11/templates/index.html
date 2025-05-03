@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Decryptor</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div id="app" class="container mx-auto px-4 py-8">
+        <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6">
+            <div class="text-center mb-6">
+                <i class="fas fa-lock text-4xl text-blue-500 mb-2"></i>
+                <h1 class="text-2xl font-bold text-gray-800">Secure Decryptor</h1>
+            </div>
+
+            <form @submit.prevent="submitForm" class="space-y-4">
+                <!-- Поле для ключа -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-key mr-2"></i>Private Key (PEM)
+                    </label>
+                    <div class="mt-1 flex rounded-md shadow-sm">
+                        <input type="file" @change="handleKeyChange" 
+                               class="block w-full text-sm text-gray-500
+                                      file:mr-4 file:py-2 file:px-4
+                                      file:rounded-md file:border-0
+                                      file:text-sm file:font-semibold
+                                      file:bg-blue-50 file:text-blue-700
+                                      hover:file:bg-blue-100" required accept=".pem">
+                    </div>
+                </div>
+
+                <!-- Поле для файла -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-file-lock mr-2"></i>Encrypted File
+                    </label>
+                    <input type="file" @change="handleSecretChange" 
+                           class="block w-full text-sm text-gray-500
+                                  file:mr-4 file:py-2 file:px-4
+                                  file:rounded-md file:border-0
+                                  file:text-sm file:font-semibold
+                                  file:bg-blue-50 file:text-blue-700
+                                  hover:file:bg-blue-100" required>
+                </div>
+
+                <!-- Кнопка -->
+                <button type="submit" :disabled="loading"
+                        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50">
+                    <i class="fas fa-unlock-alt mr-2"></i>
+                    <span v-if="!loading">Decrypt File</span>
+                    <span v-else>Processing...</span>
+                </button>
+            </form>
+
+            <!-- Результат -->
+            <div v-if="result" class="mt-6 p-4 bg-green-50 rounded-md">
+                <h3 class="text-sm font-medium text-green-800 flex items-center">
+                    <i class="fas fa-check-circle mr-2"></i> Decryption Successful
+                </h3>
+                <pre class="mt-2 text-sm text-green-700 whitespace-pre-wrap">{{ result }}</pre>
+            </div>
+
+            <!-- Ошибки -->
+            <div v-if="error" class="mt-6 p-4 bg-red-50 rounded-md">
+                <h3 class="text-sm font-medium text-red-800 flex items-center">
+                    <i class="fas fa-exclamation-circle mr-2"></i> Error
+                </h3>
+                <p class="mt-2 text-sm text-red-700">{{ error }}</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref } = Vue;
+
+        createApp({
+            setup() {
+                const keyFile = ref(null);
+                const secretFile = ref(null);
+                const result = ref('');
+                const error = ref('');
+                const loading = ref(false);
+
+                const handleKeyChange = (e) => {
+                    keyFile.value = e.target.files[0];
+                    error.value = '';
+                };
+
+                const handleSecretChange = (e) => {
+                    secretFile.value = e.target.files[0];
+                    error.value = '';
+                };
+
+                const submitForm = async () => {
+                    if (!keyFile.value || !secretFile.value) {
+                        error.value = 'Please select both files';
+                        return;
+                    }
+
+                    loading.value = true;
+                    error.value = '';
+                    result.value = '';
+
+                    try {
+                        const formData = new FormData();
+                        formData.append('key', keyFile.value);
+                        formData.append('secret', secretFile.value);
+
+                        const response = await fetch('/decypher', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        if (!response.ok) {
+                            const err = await response.json();
+                            throw new Error(err.detail || 'Decryption failed');
+                        }
+
+                        const data = await response.json();
+                        result.value = data.result;
+                    } catch (err) {
+                        error.value = err.message;
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                return { 
+                    keyFile, 
+                    secretFile, 
+                    result, 
+                    error, 
+                    loading,
+                    handleKeyChange,
+                    handleSecretChange,
+                    submitForm
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

@@ -1,0 +1,2 @@
+[run]
+command = "uvicorn fastapi_app.main:app --port 8000 & cd django_app && python manage.py runserver 0.0.0.0:8001"
